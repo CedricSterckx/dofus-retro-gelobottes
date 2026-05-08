@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Optimiseur Gélobottes – Dofus Rétro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1a1208;
+      color: #e8d5a3;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 32px;
+      gap: 8px;
+    }
+
+    .header-icon {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 0 12px #f5c84266);
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #f5c842;
+      text-shadow: 0 0 18px #f5c84266;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #a08850;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .card {
+      background: #241c0e;
+      border: 1px solid #4a3a18;
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 620px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      color: #f5c842;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 18px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #4a3a18;
+    }
+
+    .resource-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .resource-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .resource-group label {
+      font-size: 0.82rem;
+      color: #c9a85c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+    }
+
+    .item-icon {
+      width: 28px;
+      height: 28px;
+      image-rendering: pixelated;
+      flex-shrink: 0;
+    }
+
+    .item-icon-sm {
+      width: 22px;
+      height: 22px;
+      image-rendering: pixelated;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .resource-group input {
+      background: #14100a;
+      border: 1px solid #4a3a18;
+      border-radius: 6px;
+      color: #f0e0b0;
+      font-size: 1rem;
+      padding: 8px 12px;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+    .resource-group input:focus {
+      outline: none;
+      border-color: #f5c842;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      color: #7a6030;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 14px 0 10px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      max-width: 620px;
+      padding: 14px;
+      background: linear-gradient(135deg, #b8860b, #f5c842, #b8860b);
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a1208;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-bottom: 20px;
+    }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .results { display: none; }
+    .results.visible { display: block; }
+
+    .result-hero {
+      text-align: center;
+      padding: 24px 20px;
+      background: #14100a;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #f5c84244;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-hero img {
+      width: 56px;
+      height: 56px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 0 10px #f5c84288);
+    }
+
+    .result-hero .count {
+      font-size: 4rem;
+      font-weight: 800;
+      color: #f5c842;
+      line-height: 1;
+      text-shadow: 0 0 24px #f5c84266;
+    }
+
+    .result-hero .label {
+      color: #a08850;
+      font-size: 0.9rem;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .result-table th {
+      text-align: left;
+      color: #7a6030;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 8px;
+      border-bottom: 1px solid #4a3a18;
+    }
+
+    .result-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid #2a200a;
+    }
+
+    .result-table tr:last-child td { border-bottom: none; }
+
+    .resource-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .badge-craft { background: #2a4a1a; color: #6ddc4a; }
+    .badge-none  { background: #1e1e1e; color: #555; }
+    .badge-used  { background: #3a1a1a; color: #cc6060; }
+
+    .alert {
+      background: #3a1a1a;
+      border: 1px solid #8b3030;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #e07070;
+      font-size: 0.88rem;
+      margin-bottom: 12px;
+    }
+
+    .info-box {
+      background: #1a2a1a;
+      border: 1px solid #2a5a2a;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #7acf7a;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+
+    .recipe-summary {
+      font-size: 0.78rem;
+      color: #7a6030;
+      line-height: 1.9;
+    }
+    .recipe-summary span { color: #c9a85c; }
+
+    @media (max-width: 480px) {
+      .resource-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img class="header-icon" src="img/gelobottes.png" alt="Gélobottes" />
+    <h1>Optimiseur Gélobottes</h1>
+    <p class="subtitle">Dofus Rétro — Calcule le maximum de bottes craftables</p>
+  </div>
+
+  <div class="card">
+    <h2>Tes ressources</h2>
+
+    <p class="section-title">Gelées</p>
+    <div class="resource-grid">
+
+      <div class="resource-group">
+        <label>
+          <img class="item-icon" src="img/fraise.svg" alt="Gelée à la Fraise" />
+          Gelée à la Fraise
+        </label>
+        <input type="number" id="gelee_fraise" min="0" value="0" />
+      </div>
+
+      <div class="resource-group">
+        <label>
+          <img class="item-icon" src="img/bleu.svg" alt="Gelée Bleutée" />
+          Gelée Bleutée
+        </label>
+        <input type="number" id="gelee_bleutee" min="0" value="0" />
+      </div>
+
+      <div class="resource-group">
+        <label>
+          <img class="item-icon" src="img/menthe.svg" alt="Gelée à la Menthe" />
+          Gelée à la Menthe
+        </label>
+        <input type="number" id="gelee_menthe" min="0" value="0" />
+      </div>
+
+    </div>
+
+    <p class="section-title">Gelys déjà craftés</p>
+    <div class="resource-grid">
+
+      <div class="resource-group">
+        <label>
+          <img class="item-icon" src="img/rougegely.svg" alt="Rougely" />
+          Rougely
+        </label>
+        <input type="number" id="rougely" min="0" value="0" />
+      </div>
+
+      <div class="resource-group">
+        <label>
+          <img class="item-icon" src="img/blugely.svg" alt="Blugely" />
+          Blugely
+        </label>
+        <input type="number" id="blugely" min="0" value="0" />
+      </div>
+
+      <div class="resource-group">
+        <label>
+          <img class="item-icon" src="img/vertgely.svg" alt="Vertgely" />
+          Vertgely
+        </label>
+        <input type="number" id="vertgely" min="0" value="0" />
+      </div>
+
+    </div>
+
+    <div class="info-box recipe-summary" style="margin-top:18px;">
+      <span>Gélobotte ×1 :</span> 10 Eau (∞) · 6 Rougely · 6 Blugely · 6 Vertgely · 5 Gelée Fraise · 5 Gelée Bleutée<br>
+      <span>Rougely ×1 :</span> 2 Gelée à la Fraise &nbsp;|&nbsp;
+      <span>Blugely ×1 :</span> 2 Gelée Bleutée &nbsp;|&nbsp;
+      <span>Vertgely ×1 :</span> 2 Gelée à la Menthe
+    </div>
+  </div>
+
+  <button class="btn" onclick="calculate()">Calculer</button>
+
+  <div class="card results" id="results">
+    <h2>Résultats</h2>
+    <div id="results-content"></div>
+  </div>
+
+  <script>
+    const ICONS = {
+      rougely:   'img/rougegely.svg',
+      blugely:   'img/blugely.svg',
+      vertgely:  'img/vertgely.svg',
+      gelobotte: 'img/gelobottes.png',
+      fraise:    'img/fraise.svg',
+      bleutee:   'img/bleu.svg',
+      menthe:    'img/menthe.svg',
+    };
+
+    function icon(key, name) {
+      return `<img class="item-icon-sm" src="${ICONS[key]}" alt="${name}" />`;
+    }
+
+    function getVal(id) {
+      return Math.max(0, parseInt(document.getElementById(id).value) || 0);
+    }
+
+    function canCraft(n, gr, gb, gv, br, bb, bv) {
+      const cr = Math.max(0, 6 * n - br);
+      const cb = Math.max(0, 6 * n - bb);
+      const cv = Math.max(0, 6 * n - bv);
+      return (cr * 2 + 5 * n) <= gr
+          && (cb * 2 + 5 * n) <= gb
+          && (cv * 2)          <= gv;
+    }
+
+    function calculate() {
+      const gr = getVal('gelee_fraise');
+      const gb = getVal('gelee_bleutee');
+      const gv = getVal('gelee_menthe');
+      const br = getVal('rougely');
+      const bb = getVal('blugely');
+      const bv = getVal('vertgely');
+
+      let lo = 0, hi = 100000;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        if (canCraft(mid, gr, gb, gv, br, bb, bv)) lo = mid;
+        else hi = mid - 1;
+      }
+      const n = lo;
+
+      const resultsDiv = document.getElementById('results');
+      const content    = document.getElementById('results-content');
+      resultsDiv.classList.add('visible');
+
+      if (n === 0) {
+        content.innerHTML = `
+          <div class="alert">
+            Impossible de crafter la moindre Gélobotte avec ces ressources.
+            Vérifie tes stocks de gelées.
+          </div>
+          ${shortageMsg(1, gr, gb, gv, br, bb, bv, '1ère botte')}
+        `;
+        return;
+      }
+
+      const cr = Math.max(0, 6 * n - br);
+      const cb = Math.max(0, 6 * n - bb);
+      const cv = Math.max(0, 6 * n - bv);
+
+      const fraise_used  = cr * 2 + 5 * n;
+      const bleutee_used = cb * 2 + 5 * n;
+      const menthe_used  = cv * 2;
+
+      const row = (iconKey, name, craftCount, usedCount, stock, stockUsed) => {
+        const craftBadge = craftCount > 0
+          ? `<span class="badge badge-craft">+${craftCount} à crafter</span>`
+          : `<span class="badge badge-none">Stock suffisant</span>`;
+        const usedBadge = `<span class="badge badge-used">−${usedCount} utilisées</span>`;
+        const left = stock - stockUsed;
+        return `
+          <tr>
+            <td><div class="resource-name">${icon(iconKey, name)}<span>${name}</span></div></td>
+            <td>${usedCount !== null ? usedBadge : craftBadge}</td>
+            <td>${left >= 0 ? left : 0} restant(s)</td>
+          </tr>`;
+      };
+
+      content.innerHTML = `
+        <div class="result-hero">
+          <img src="${ICONS.gelobotte}" alt="Gélobottes" />
+          <div class="count">${n}</div>
+          <div class="label">Gélobotte${n > 1 ? 's' : ''} craftable${n > 1 ? 's' : ''}</div>
+        </div>
+
+        <table class="result-table">
+          <thead>
+            <tr>
+              <th>Ressource</th>
+              <th>Action</th>
+              <th>Restant</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${row('rougely',  'Rougely',           cr, null,         br, Math.min(br, 6*n))}
+            ${row('blugely',  'Blugely',           cb, null,         bb, Math.min(bb, 6*n))}
+            ${row('vertgely', 'Vertgely',          cv, null,         bv, Math.min(bv, 6*n))}
+            ${row('fraise',   'Gelée à la Fraise', 0,  fraise_used,  gr, fraise_used)}
+            ${row('bleutee',  'Gelée Bleutée',     0,  bleutee_used, gb, bleutee_used)}
+            ${row('menthe',   'Gelée à la Menthe', 0,  menthe_used,  gv, menthe_used)}
+          </tbody>
+        </table>
+
+        ${shortageMsg(n + 1, gr, gb, gv, br, bb, bv, 'botte supplémentaire')}
+      `;
+    }
+
+    function shortageMsg(n, gr, gb, gv, br, bb, bv, label) {
+      if (canCraft(n, gr, gb, gv, br, bb, bv)) return '';
+
+      const cr = Math.max(0, 6 * n - br);
+      const cb = Math.max(0, 6 * n - bb);
+      const cv = Math.max(0, 6 * n - bv);
+
+      const missing = [];
+      if (cr * 2 + 5 * n > gr) missing.push(`${cr * 2 + 5 * n - gr} Gelée à la Fraise`);
+      if (cb * 2 + 5 * n > gb) missing.push(`${cb * 2 + 5 * n - gb} Gelée Bleutée`);
+      if (cv * 2          > gv) missing.push(`${cv * 2 - gv} Gelée à la Menthe`);
+
+      if (!missing.length) return '';
+      return `
+        <div class="info-box" style="margin-top:16px;">
+          💡 Pour une <strong>${label}</strong>, il manque : ${missing.join(' · ')}
+        </div>`;
+    }
+
+    document.querySelectorAll('input').forEach(el => {
+      el.addEventListener('input', () => {
+        if (document.getElementById('results').classList.contains('visible')) calculate();
+      });
+    });
+  </script>
+</body>
+</html>
